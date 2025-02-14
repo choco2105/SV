@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Una historia de amor especial para San Valentín">
+    <meta name="theme-color" content="#ff6b6b">
+    <title>Nuestra Historia de Amor ❤️</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <!-- GSAP para animaciones -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    
+    <!-- SweetAlert2 para notificaciones -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Audio background -->
+    <audio id="backgroundMusic" preload="auto" loop>
+        <source src="music/romantic.mp3" type="audio/mpeg">
+        Tu navegador no soporta audio HTML5.
+    </audio>
+</head>
+<body>
+    <!-- Controles de música (siempre visibles) -->
+    <div class="music-controls">
+        <button id="toggleMusic" class="control-button">
+            <i class="fas fa-volume-up"></i>
+        </button>
+        <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5">
+    </div>
+
+    <!-- Loader inicial -->
+    <div id="loader" class="loader-container">
+        <div class="loader-content">
+            <div class="loader-heart">❤️</div>
+            <p class="loader-text">Cargando nuestra historia...</p>
+            <div class="loader-progress">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Portada inicial -->
+        <div id="cover" class="section">
+            <div class="stars-container"></div>
+            <div class="heart-container">
+                <div class="heart beating"></div>
+            </div>
+            <h1 class="main-title animate__animated animate__heartBeat">
+                ¿Quieres ser mi San Valentín?
+            </h1>
+            <button id="startButton" class="glow-button animate__animated animate__pulse animate__infinite">
+                <i class="fas fa-heart"></i> Comenzar nuestra historia
+                <i class="fas fa-music music-icon"></i>
+            </button>
+        </div>
+
+        <!-- Libro de historia -->
+        <div id="book" class="book-container hidden">
+            <!-- Navegación del libro -->
+            <div class="book-navigation">
+                <button id="prevPage" class="nav-button" aria-label="Página anterior">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span id="pageNumber" role="status" aria-live="polite">1/6</span>
+                <button id="nextPage" class="nav-button" aria-label="Página siguiente">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- Página 1: Primer Encuentro -->
+            <div class="page" id="page1">
+                <div class="page-content">
+                    <div class="image-container" tabindex="0">
+                        <img src="imagenes/1.jpg" alt="Nuestro primer momento juntos" class="page-image">
+                        <div class="image-overlay"></div>
+                    </div>
+                    <h2 class="page-title">El primer mensaje</h2>
+                    <div class="chat-recreation" aria-label="Recreación de nuestra primera conversación">
+                        <div class="message-bubble left animate__animated animate__fadeInLeft">
+                            <p>¿Te conozco? 🤔</p>
+                            <span class="time">12:30</span>
+                        </div>
+                        <div class="message-bubble right animate__animated animate__fadeInRight">
+                            <p>No, pero nos podemos conocer 😊</p>
+                            <span class="time">12:31</span>
+                        </div>
+                        <div class="typing-indicator" aria-hidden="true">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Página 2: Conversaciones -->
+            <div class="page" id="page2">
+                <div class="page-content">
+                    <div class="polaroid-container floating">
+                        <img src="imagenes/2.jpg" alt="Nuestras conversaciones especiales" class="polaroid-image">
+                        <div class="polaroid-caption">Nuestras primeras conversaciones</div>
+                    </div>
+                    <h2 class="page-title">Conversaciones Interminables</h2>
+                    <div class="chat-container scrollable" aria-live="polite"></div>
+                    <div class="message-counter">
+                        <i class="fas fa-comments"></i>
+                        <span id="messageCount" aria-live="polite">0</span> mensajes compartidos
+                    </div>
+                </div>
+            </div>
+
+            <!-- Página 3: Videollamadas -->
+            <div class="page" id="page3">
+                <div class="page-content">
+                    <div class="video-call-frame">
+                        <div class="video-call-header">
+                            <span class="call-duration" aria-live="polite">00:00:00</span>
+                            <div class="call-controls">
+                                <button class="control-button" aria-label="Micrófono">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                                <button class="control-button" aria-label="Cámara">
+                                    <i class="fas fa-video"></i>
+                                </button>
+                                <button class="control-button end-call" aria-label="Finalizar llamada">
+                                    <i class="fas fa-phone-slash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <img src="imagenes/3.jpg" alt="Nuestras videollamadas" class="video-call-image">
+                        <div class="video-call-footer">
+                            <div class="connection-status">
+                                <i class="fas fa-signal"></i> Conexión estable
+                            </div>
+                        </div>
+                    </div>
+                    <div class="call-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-phone"></i>
+                            <span id="callCount" aria-live="polite">42</span> llamadas
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-clock"></i>
+                            <span id="totalTime" aria-live="polite">126</span> horas juntos
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Página 4: Juego de Memoria -->
+            <div class="page" id="page4">
+                <div class="page-content">
+                    <h2 class="page-title">Momentos Especiales</h2>
+                    <div class="game-container">
+                        <div class="game-header">
+                            <div class="game-stats">
+                                <div class="stat-item">
+                                    <i class="fas fa-sync-alt"></i>
+                                    <span id="moves" aria-live="polite">Movimientos: 0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <i class="fas fa-heart"></i>
+                                    <span id="pairs" aria-live="polite">Pares: 0/4</span>
+                                </div>
+                                <div class="stat-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span id="timer" aria-live="polite">Tiempo: 0:00</span>
+                                </div>
+                            </div>
+                            <button id="resetGame" class="reset-button">
+                                <i class="fas fa-redo"></i> Reiniciar
+                            </button>
+                        </div>
+                        <div class="memory-cards-container">
+                            <div class="memory-cards" role="grid" aria-label="Juego de memoria"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Página 5: Nuestro Futuro -->
+            <div class="page" id="page5">
+                <div class="page-content">
+                    <div class="future-gallery">
+                        <img src="imagenes/6.jpg" alt="Nuestro futuro juntos" class="future-image">
+                        <div class="gallery-overlay">
+                            <h3>Nuestros Sueños</h3>
+                        </div>
+                    </div>
+                    <div class="love-letter">
+                        <div class="letter-content">
+                            <h2>Mi amor...</h2>
+                            <p class="typewriter-text">
+                                A pesar de la distancia, cada día me enamoro más de ti...
+                                Construiremos juntos un futuro lleno de amor y felicidad.
+                            </p>
+                        </div>
+                        <div class="letter-footer">
+                            <i class="fas fa-heart beating"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Página Final -->
+            <div class="page" id="finalPage">
+                <div class="page-content final-page">
+                    <div class="final-gallery">
+                        <div class="gallery-item">
+                            <img src="imagenes/5.jpg" alt="Nuestro momento más especial" class="final-image">
+                        </div>
+                    </div>
+                    <div class="final-decision animate__animated animate__bounceIn">
+                        <h2>Entonces...</h2>
+                        <h3 class="proposal">¿Quieres ser mi San Valentín?</h3>
+                        <div class="decision-buttons">
+                            <button id="yesBtn" class="glow-button">
+                                <i class="fas fa-heart"></i> ¡Sí! ❤️
+                            </button>
+                            <button id="noBtn" class="move-button">
+                                <i class="fas fa-times"></i> No
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final especial -->
+        <div id="special-ending" class="section hidden">
+            <div class="floating-hearts" aria-hidden="true"></div>
+            <div class="ending-content animate__animated animate__zoomIn">
+                <h1>¡Sabía que dirías que sí! 💕</h1>
+                <p class="ending-message">Gracias por ser tú y por hacer cada día más especial...</p>
+                <div class="final-image-container">
+                    <img src="imagenes/7.jpg" alt="Nosotros felices juntos" class="final-image">
+                    <div class="image-frame"></div>
+                </div>
+                <div class="celebration-effects" aria-hidden="true">
+                    <div class="confetti"></div>
+                    <div class="sparkles"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script principal -->
+    <script src="script.js"></script>
+</body>
+</html>
