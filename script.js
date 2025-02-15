@@ -1,44 +1,89 @@
 // Utilidades de animación
 const animationUtils = {
     fadeIn(element, duration = 500) {
-        return gsap.from(element, {
-            opacity: 0,
-            duration: duration / 1000,
-            ease: "power2.out"
-        });
+        element.style.opacity = '0';
+        element.style.display = 'block';
+        
+        let start = null;
+        const animate = (timestamp) => {
+            if (!start) start = timestamp;
+            const progress = timestamp - start;
+            const opacity = Math.min(progress / duration, 1);
+            
+            element.style.opacity = opacity;
+            
+            if (progress < duration) {
+                requestAnimationFrame(animate);
+            }
+        };
+        
+        requestAnimationFrame(animate);
     },
 
     fadeOut(element, duration = 500) {
-        return gsap.to(element, {
-            opacity: 0,
-            duration: duration / 1000,
-            ease: "power2.in"
-        });
+        let start = null;
+        const initialOpacity = parseFloat(getComputedStyle(element).opacity);
+        
+        const animate = (timestamp) => {
+            if (!start) start = timestamp;
+            const progress = timestamp - start;
+            const opacity = Math.max(initialOpacity - (progress / duration), 0);
+            
+            element.style.opacity = opacity;
+            
+            if (progress < duration) {
+                requestAnimationFrame(animate);
+            } else {
+                element.style.display = 'none';
+            }
+        };
+        
+        requestAnimationFrame(animate);
     },
 
     shake(element, intensity = 5) {
-        return gsap.to(element, {
-            x: intensity,
-            duration: 0.1,
-            repeat: 3,
-            yoyo: true,
-            ease: "power2.inOut"
-        });
+        let start = null;
+        const duration = 500;
+        
+        const animate = (timestamp) => {
+            if (!start) start = timestamp;
+            const progress = timestamp - start;
+            const phase = (progress / duration) * Math.PI * 4; // 2 ciclos completos
+            
+            if (progress < duration) {
+                const offset = Math.sin(phase) * intensity;
+                element.style.transform = `translateX(${offset}px)`;
+                requestAnimationFrame(animate);
+            } else {
+                element.style.transform = '';
+            }
+        };
+        
+        requestAnimationFrame(animate);
     },
 
     pulse(element) {
-        return gsap.to(element, {
-            scale: 1.1,
-            duration: 0.2,
-            repeat: 1,
-            yoyo: true,
-            ease: "power2.out"
-        });
+        let start = null;
+        const duration = 400;
+        
+        const animate = (timestamp) => {
+            if (!start) start = timestamp;
+            const progress = timestamp - start;
+            const phase = (progress / duration) * Math.PI;
+            
+            if (progress < duration) {
+                const scale = 1 + Math.sin(phase) * 0.1;
+                element.style.transform = `scale(${scale})`;
+                requestAnimationFrame(animate);
+            } else {
+                element.style.transform = '';
+            }
+        };
+        
+        requestAnimationFrame(animate);
     },
 
     createParticles(container, count = 20, type = 'heart') {
-        const fragment = document.createDocumentFragment();
-        
         for (let i = 0; i < count; i++) {
             const particle = document.createElement('div');
             particle.className = `particle ${type}`;
@@ -47,27 +92,22 @@ const animationUtils = {
             const randomDelay = Math.random() * 2;
             const randomDuration = 2 + Math.random() * 2;
             
-            Object.assign(particle.style, {
-                left: `${randomX}%`,
-                animationDelay: `${randomDelay}s`,
-                animationDuration: `${randomDuration}s`
-            });
+            particle.style.left = `${randomX}%`;
+            particle.style.animationDelay = `${randomDelay}s`;
+            particle.style.animationDuration = `${randomDuration}s`;
             
-            particle.addEventListener('animationend', () => {
-                particle.remove();
-            }, { once: true });
+            container.appendChild(particle);
             
-            fragment.appendChild(particle);
+            // Limpieza automática
+            setTimeout(() => particle.remove(), randomDuration * 1000);
         }
-        
-        container.appendChild(fragment);
     },
 
     typeWriter(element, text, speed = 50) {
-        let i = 0;
-        element.textContent = '';
-        
         return new Promise(resolve => {
+            let i = 0;
+            element.textContent = '';
+            
             function type() {
                 if (i < text.length) {
                     element.textContent += text.charAt(i);
@@ -77,6 +117,7 @@ const animationUtils = {
                     resolve();
                 }
             }
+            
             type();
         });
     },
@@ -151,74 +192,548 @@ const utils = {
     }
 };
 
-// Gestor de estado
-class StateManager {
-    constructor() {
-        this.state = {
-            currentPage: 0,
-            bookStarted: false,
-            loadingProgress: 0,
-            gameState: {
-                moves: 0,
-                pairs: 0,
-                time: 0
+// Funciones para el manejo del modal
+function setupModal() {
+    const modal = document.getElementById('moments-modal');
+    const closeBtn = document.querySelector('.close-modal');
+    
+    if (modal && closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            document.body.classList.remove('no-scroll');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                document.body.classList.remove('no-scroll');
             }
-        };
-        
-        this.observers = new Set();
-    }
+        });
 
-    setState(newState) {
-        const oldState = {...this.state};
-        this.state = {
-            ...this.state,
-            ...newState,
-            gameState: {
-                ...this.state.gameState,
-                ...(newState.gameState || {})
-            }
-        };
-        this.notifyObservers(oldState);
-    }
-
-    getState() {
-        return {...this.state};
-    }
-
-    subscribe(observer) {
-        this.observers.add(observer);
-        return () => this.observers.delete(observer);
-    }
-
-    notifyObservers(oldState) {
-        this.observers.forEach(observer => {
-            try {
-                observer(this.state, oldState);
-            } catch (error) {
-                console.error('Error en observer:', error);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                modal.classList.remove('active');
+                document.body.classList.remove('no-scroll');
             }
         });
     }
 }
 
-// Inicialización de la aplicación
-document.addEventListener('DOMContentLoaded', () => {
-    try {
-        window.valentineApp = new ValentineApp();
-    } catch (error) {
-        console.error('Error al iniciar la aplicación:', error);
-        Swal.fire({
-            title: 'Error',
-            text: 'No se pudo iniciar la aplicación correctamente',
-            icon: 'error',
-            confirmButtonText: 'OK'
+function showImageModal(imageSrc, description) {
+    const modal = document.getElementById('moments-modal');
+    const modalImage = document.getElementById('moment-image');
+    const modalDescription = document.querySelector('.moment-description');
+    
+    if (modal && modalImage && modalDescription) {
+        modalImage.src = imageSrc;
+        modalDescription.textContent = description;
+        modal.classList.add('active');
+        document.body.classList.add('no-scroll');
+    }
+}
+
+// Clase principal ValentineApp
+class ValentineApp {
+    constructor() {
+        this.currentPage = 0;
+        this.totalPages = 8;
+        this.isTransitioning = false;
+        this.preloadImages().then(() => {
+            this.initializeElements();
+            this.setupAudio();
+            this.setupEventListeners();
+            this.setupModal();
         });
     }
-});
+
+    async preloadImages() {
+        const imagesToPreload = [
+            'imagenes/1.jpg',
+            'imagenes/7.jpg'
+            // Agrega aquí todas las imágenes que necesites precargar
+        ];
+
+        try {
+            await Promise.all(imagesToPreload.map(src => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = src;
+                });
+            }));
+        } catch (error) {
+            console.error('Error preloading images:', error);
+        }
+    }
+
+    initializeElements() {
+        // Elementos principales
+        this.loader = document.getElementById('loader');
+        this.progressBar = document.querySelector('.progress-bar');
+        this.cover = document.getElementById('cover');
+        this.book = document.getElementById('book');
+        this.specialEnding = document.getElementById('special-ending');
+        this.pages = document.querySelectorAll('.page');
+
+        // Botones y controles
+        this.startButton = document.getElementById('startButton');
+        this.yesBtn = document.getElementById('yesBtn');
+        this.noBtn = document.getElementById('noBtn');
+        this.prevPage = document.getElementById('prevPage');
+        this.nextPage = document.getElementById('nextPage');
+        this.pageNumber = document.getElementById('pageNumber');
+
+        // Inicializar estados
+        if (this.cover) {
+            this.cover.style.display = 'none';
+            this.cover.style.opacity = '0';
+        }
+
+        if (this.book) {
+            this.book.style.display = 'none';
+            this.book.style.opacity = '0';
+        }
+
+        // Esconder todas las páginas excepto la primera
+        this.pages.forEach(page => {
+            page.style.display = 'none';
+            page.style.opacity = '0';
+        });
+
+        // Memoria para la página 6
+        this.memoryGame = new MemoryGame();
+
+        // Iniciar loader
+        this.startLoader();
+
+        // Inicializar galería de videollamadas
+        this.initializeGallery();
+    }
+
+    initializeGallery() {
+        const galleryContainer = document.querySelector('.moments-gallery');
+        if (!galleryContainer) return;
+
+        const galleryItems = [
+            {
+                src: 'imagenes/2.jpg',
+                description: 'Primera videollamada juntos'
+            },
+            {
+                src: 'imagenes/3.jpg',
+                description: 'Compartiendo sonrisas'
+            },
+            {
+                src: 'imagenes/4.jpg',
+                description: 'Momentos especiales'
+            }
+        ];
+
+        galleryItems.forEach(item => {
+            const galleryItem = document.createElement('div');
+            galleryItem.className = 'gallery-item animate__animated animate__fadeIn';
+            
+            galleryItem.innerHTML = `
+                <img src="${item.src}" alt="${item.description}" class="gallery-image">
+                <div class="gallery-overlay">
+                    <p class="gallery-description">${item.description}</p>
+                </div>
+            `;
+
+            galleryItem.addEventListener('click', () => {
+                showImageModal(item.src, item.description);
+            });
+
+            galleryContainer.appendChild(galleryItem);
+        });
+    }
+
+    setupAudio() {
+        this.audio = document.getElementById('backgroundMusic');
+        this.volumeSlider = document.getElementById('volumeSlider');
+        this.toggleMusicBtn = document.getElementById('toggleMusic');
+
+        if (this.audio && this.volumeSlider && this.toggleMusicBtn) {
+            this.audio.volume = 0.5;
+            
+            this.toggleMusicBtn.addEventListener('click', () => {
+                if (this.audio.paused) {
+                    this.audio.play().then(() => {
+                        this.toggleMusicBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                    }).catch(console.error);
+                } else {
+                    this.audio.pause();
+                    this.toggleMusicBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                }
+            });
+
+            this.volumeSlider.addEventListener('input', (e) => {
+                this.audio.volume = e.target.value;
+            });
+        }
+    }
+
+    setupEventListeners() {
+        // Botón de inicio
+        if (this.startButton) {
+            this.startButton.addEventListener('click', () => this.startStory());
+        }
+
+        // Navegación
+        if (this.prevPage) {
+            this.prevPage.addEventListener('click', () => this.navigatePage('prev'));
+        }
+        if (this.nextPage) {
+            this.nextPage.addEventListener('click', () => this.navigatePage('next'));
+        }
+
+        // Botones de decisión final
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+        
+        if (yesBtn) {
+            yesBtn.addEventListener('click', () => this.handleAcceptance());
+        }
+        
+        if (noBtn) {
+            this.setupEscapingButton(noBtn);
+        }
+
+        // Navegación por teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') this.navigatePage('next');
+            if (e.key === 'ArrowLeft') this.navigatePage('prev');
+        });
+    }
+
+    setupModal() {
+        setupModal();
+    }
+
+    startLoader() {
+        if (!this.loader || !this.progressBar) return;
+
+        this.loader.style.display = 'flex';
+        this.loader.style.opacity = '1';
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 1;
+            this.progressBar.style.width = `${progress}%`;
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => this.showCover(), 500);
+            }
+        }, 30);
+    }
+
+    showCover() {
+        if (!this.loader || !this.cover) return;
+
+        // Ocultar loader
+        animationUtils.fadeOut(this.loader);
+
+        // Mostrar cover
+        setTimeout(() => {
+            this.cover.style.display = 'flex';
+            void this.cover.offsetWidth; // Forzar reflow
+            this.cover.style.opacity = '1';
+            this.createStarryBackground();
+        }, 500);
+    }
+
+    createStarryBackground() {
+        const container = document.querySelector('.stars-container');
+        if (!container) return;
+
+        for (let i = 0; i < 50; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animationDelay = `${Math.random() * 3}s`;
+            container.appendChild(star);
+        }
+    }
+
+    startStory() {
+        if (!this.cover || !this.book) return;
+
+        // Iniciar música
+        if (this.audio) {
+            this.audio.play().catch(console.error);
+        }
+
+        // Ocultar cover con animación
+        this.cover.style.opacity = '0';
+        setTimeout(() => {
+            this.cover.style.display = 'none';
+            
+            // Mostrar libro con animación
+            this.book.style.display = 'block';
+            requestAnimationFrame(() => {
+                this.book.style.opacity = '1';
+                
+                // Mostrar primera página
+                const firstPage = this.pages[0];
+                if (firstPage) {
+                    firstPage.style.display = 'block';
+                    firstPage.style.opacity = '1';
+                    firstPage.style.transform = 'translateX(0)';
+                }
+                
+                this.updateNavigation();
+            });
+        }, 500);
+    }
+
+    async navigatePage(direction) {
+        if (this.isTransitioning) return;
+
+        const nextIndex = direction === 'next' ? 
+            this.currentPage + 1 : 
+            this.currentPage - 1;
+
+        if (nextIndex >= 0 && nextIndex < this.totalPages) {
+            await this.showPage(nextIndex);
+        }
+    }
+
+    async showPage(index) {
+        if (this.isTransitioning || index < 0 || index >= this.totalPages) return;
+        
+        try {
+            this.isTransitioning = true;
+            
+            const currentPage = this.pages[this.currentPage];
+            const nextPage = this.pages[index];
+            
+            if (!nextPage) return;
+
+            // Ocultar página actual
+            if (currentPage) {
+                currentPage.style.transform = 'translateX(-100%)';
+                currentPage.style.opacity = '0';
+                await new Promise(resolve => setTimeout(resolve, 300));
+                currentPage.style.display = 'none';
+            }
+
+            // Mostrar nueva página
+            nextPage.style.display = 'block';
+            nextPage.style.transform = 'translateX(100%)';
+            await new Promise(resolve => setTimeout(resolve, 50));
+            nextPage.style.transform = 'translateX(0)';
+            nextPage.style.opacity = '1';
+
+            // Actualizar estado
+            this.currentPage = index;
+            this.updateNavigation();
+
+            // Inicializar juego si es la página correspondiente
+            if (index === 5) {
+                this.memoryGame.initialize();
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 300));
+        } finally {
+            this.isTransitioning = false;
+        }
+    }
+
+    updateNavigation() {
+        if (this.pageNumber) {
+            this.pageNumber.textContent = `${this.currentPage + 1}/${this.totalPages}`;
+        }
+        if (this.prevPage) {
+            this.prevPage.style.visibility = this.currentPage === 0 ? 'hidden' : 'visible';
+        }
+        if (this.nextPage) {
+            this.nextPage.style.visibility = 
+                this.currentPage === this.totalPages - 1 ? 'hidden' : 'visible';
+        }
+    }
+
+    setupEscapingButton(noBtn) {
+        const phrases = [
+            "No",
+            "¿Estás segura?",
+            "¿De verdad?",
+            "Piénsalo bien...",
+            "¡Última oportunidad!",
+            "¿Segura segura?",
+            "¡Me vas a hacer llorar!",
+            "¡No seas así! 🥺",
+            "¡Coquito, por favor!",
+            "¡Te necesito!"
+        ];
+        
+        let count = 0;
+        let isMoving = false;
+
+        noBtn.addEventListener('mouseover', () => {
+            if (isMoving) return;
+            isMoving = true;
+
+            count = (count + 1) % phrases.length;
+            noBtn.textContent = phrases[count];
+
+            const maxX = window.innerWidth - noBtn.offsetWidth - 50;
+            const maxY = window.innerHeight - noBtn.offsetHeight - 50;
+            
+            const randomX = Math.max(50, Math.random() * maxX);
+            const randomY = Math.max(50, Math.random() * maxY);
+
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = `${randomX}px`;
+            noBtn.style.top = `${randomY}px`;
+
+            setTimeout(() => {
+                isMoving = false;
+            }, 300);
+        });
+    }
+
+    handleAcceptance() {
+        Swal.fire({
+            title: '¡Gracias mi Coquito! ❤️',
+            html: `
+                <p>Me haces la persona más feliz del mundo...</p>
+                <p>En 7 días te veré por primera vez, y no puedo estar más emocionado.</p>
+            `,
+            imageUrl: 'imagenes/7.jpg',
+            imageWidth: 400,
+            imageHeight: 300,
+            imageAlt: 'Nuestra foto especial',
+            confirmButtonText: 'Te Amo ❤️',
+            showClass: {
+                popup: 'animate__animated animate__fadeInDown',
+                backdrop: 'animate__animated animate__fadeIn'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutUp'
+            },
+            backdrop: `
+                rgba(147, 51, 234, 0.15)
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%239333ea' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E")
+                center/120px no-repeat
+            `
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.showSpecialEnding();
+            }
+        });
+    }
+
+    showSpecialEnding() {
+        if (!this.specialEnding || !this.book) return;
+        
+        // Ocultar el libro primero
+        this.book.style.opacity = '0';
+        this.book.style.display = 'none';
+
+        // Asegurar que el contenedor especial esté preparado
+        this.specialEnding.style.display = 'flex';
+        this.specialEnding.style.opacity = '0';
+        this.specialEnding.style.visibility = 'visible';
+        
+        // Mostrar con animación
+        setTimeout(() => {
+            this.specialEnding.style.opacity = '1';
+            
+            // Crear y añadir corazones
+            const createHeart = () => {
+                const heart = document.createElement('div');
+                heart.className = 'falling-heart';
+                heart.innerHTML = '❤️';
+                heart.style.left = `${Math.random() * 100}vw`;
+                heart.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                heart.style.fontSize = `${Math.random() * 1 + 1}rem`;
+                this.specialEnding.querySelector('.falling-hearts-container').appendChild(heart);
+                heart.addEventListener('animationend', () => heart.remove());
+            };
+
+            // Iniciar la creación de corazones
+            setInterval(createHeart, 300);
+        }, 100);
+    }
+
+    createFloatingHearts() {
+        const container = document.querySelector('.floating-hearts');
+        if (!container) return;
+
+        setInterval(() => {
+            const heart = document.createElement('div');
+            heart.className = 'floating-heart';
+            heart.innerHTML = '❤️';
+            heart.style.left = `${Math.random() * 100}%`;
+            heart.style.animationDuration = `${Math.random() * 2 + 3}s`;
+            container.appendChild(heart);
+            setTimeout(() => heart.remove(), 5000);
+        }, 300);
+    }
+
+    updateFinalCountdown() {
+        const targetDate = new Date('2025-02-21T00:00:00');
+        const timer = document.getElementById('final-timer');
+        
+        if (!timer) return;
+
+        const updateTimer = () => {
+            const now = new Date();
+            const difference = targetDate - now;
+
+            if (difference <= 0) {
+                timer.innerHTML = '<p>¡El día ha llegado! 💖</p>';
+                return;
+            }
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            timer.innerHTML = `
+                <div class="countdown-item">
+                    <span class="number">${days}</span>
+                    <span class="label">días</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="number">${hours}</span>
+                    <span class="label">horas</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="number">${minutes}</span>
+                    <span class="label">minutos</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="number">${seconds}</span>
+                    <span class="label">segundos</span>
+                </div>
+            `;
+        };
+
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    }
+}
+
 // Clase del juego de memoria
 class MemoryGame {
     constructor() {
+        this.cards = [];
+        this.flippedCards = [];
+        this.matchedPairs = 0;
+        this.moves = 0;
+        this.isLocked = false;
+    }
+
+    initialize() {
         this.reset();
+        this.createCards();
+        this.setupEventListeners();
+        this.updateCardStyles();
     }
 
     reset() {
@@ -226,105 +741,73 @@ class MemoryGame {
         this.flippedCards = [];
         this.matchedPairs = 0;
         this.moves = 0;
-        this.timer = 0;
-        this.timerInterval = null;
         this.isLocked = false;
     }
 
-    initialize() {
-        this.reset();
-        this.createCards();
-        this.shuffleCards();
-        
-        // Mostrar los símbolos al inicio
-        this.cards.forEach(card => {
-            card.classList.add('flipped');
-        });
-        
-        // Después de 2 segundos, voltear las cartas
-        setTimeout(() => {
-            this.cards.forEach(card => {
-                card.classList.remove('flipped');
-            });
-            this.setupEventListeners();
-            this.startTimer();
-        }, 2000);
-    }
-
     createCards() {
-        // Cambiar a 3 pares de cartas (6 en total)
-        const cardImages = [1, 2, 3]; // Solo 3 imágenes diferentes
-        const cardPairs = [...cardImages, ...cardImages];
         const container = document.querySelector('.memory-cards');
-        
         if (!container) return;
-        
+
         container.innerHTML = '';
         
-        utils.shuffle(cardPairs).forEach((imgNumber, index) => {
-            const card = this.createCardElement(imgNumber, index);
-            this.cards.push(card);
-            container.appendChild(card);
+        const cardData = [
+            { id: 1, emoji: '💝', description: 'Nuestro primer mensaje' },
+            { id: 2, emoji: '💌', description: 'Días de pandemia juntos' },
+            { id: 3, emoji: '💕', description: 'Reencuentro en Navidad' }
+        ];
+
+        // Duplicar las cartas para crear pares
+        const cards = [...cardData, ...cardData];
+        
+        // Mezclar las cartas
+        for (let i = cards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cards[i], cards[j]] = [cards[j], cards[i]];
+        }
+
+        cards.forEach((card, index) => {
+            const cardElement = this.createCardElement(card, index);
+            this.cards.push(cardElement);
+            container.appendChild(cardElement);
         });
     }
 
-    createCardElement(imgNumber, index) {
-        const card = document.createElement('div');
-        card.className = 'memory-card';
-        card.dataset.value = imgNumber;
-        card.dataset.index = index;
-        card.setAttribute('role', 'button');
-        card.setAttribute('aria-label', 'Carta de memoria');
+    createCardElement(card, index) {
+        const cardElement = document.createElement('div');
+        cardElement.className = 'memory-card';
+        cardElement.dataset.cardId = card.id;
+        cardElement.dataset.index = index;
         
-        // Estructura actualizada de la carta
-        card.innerHTML = `
-            <div class="card-front"></div>
+        cardElement.innerHTML = `
+            <div class="card-front">
+                <div class="card-content">❤️</div>
+            </div>
             <div class="card-back">
-                <span class="card-symbol">${this.getSymbolForCard(imgNumber)}</span>
+                <div class="card-content">
+                    <span class="card-emoji">${card.emoji}</span>
+                    <span class="card-description">${card.description}</span>
+                </div>
             </div>
         `;
-        return card;
-    }
 
-    getSymbolForCard(value) {
-        const symbols = {
-            1: '🌟',
-            2: '💖',
-            3: '🎀'
-        };
-        return symbols[value] || '❤️';
-    }
-
-    shuffleCards() {
-        for (let i = this.cards.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
-            this.cards[i].style.order = i;
-        }
+        return cardElement;
     }
 
     setupEventListeners() {
         this.cards.forEach(card => {
-            card.addEventListener('click', () => {
-                if (!card.classList.contains('flipped') && !this.isLocked) {
-                    this.flipCard(card);
-                }
-            });
+            card.addEventListener('click', () => this.handleCardClick(card));
         });
 
         const resetButton = document.getElementById('resetGame');
         if (resetButton) {
-            resetButton.addEventListener('click', () => this.resetGame());
+            resetButton.addEventListener('click', () => this.reset());
         }
     }
 
-    flipCard(card) {
-        if (
-            this.isLocked || 
-            this.flippedCards.length === 2 || 
-            this.flippedCards.includes(card) ||
-            card.classList.contains('matched')
-        ) {
+    handleCardClick(card) {
+        if (this.isLocked || 
+            this.flippedCards.includes(card) || 
+            card.classList.contains('matched')) {
             return;
         }
 
@@ -341,7 +824,7 @@ class MemoryGame {
     checkMatch() {
         this.isLocked = true;
         const [card1, card2] = this.flippedCards;
-        const match = card1.dataset.value === card2.dataset.value;
+        const match = card1.dataset.cardId === card2.dataset.cardId;
 
         if (match) {
             this.handleMatch(card1, card2);
@@ -352,13 +835,23 @@ class MemoryGame {
 
     handleMatch(card1, card2) {
         this.matchedPairs++;
-        card1.classList.add('matched');
-        card2.classList.add('matched');
+        
+        setTimeout(() => {
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            
+            this.createParticles(card1);
+            this.createParticles(card2);
+        }, 200);
+
         this.updatePairsDisplay();
 
-        if (this.matchedPairs === 3) { // Corregido a 3 pares
-            this.handleGameComplete();
+        if (this.matchedPairs === 3) {
+            setTimeout(() => {
+                this.handleGameComplete();
+            }, 1000);
         }
+        
         this.resetTurn();
     }
 
@@ -385,767 +878,83 @@ class MemoryGame {
     updatePairsDisplay() {
         const pairsDisplay = document.getElementById('pairs');
         if (pairsDisplay) {
-            pairsDisplay.textContent = `Pares: ${this.matchedPairs}/3`; // Corregido a 3 pares
+            pairsDisplay.textContent = `Pares: ${this.matchedPairs}/3`;
         }
     }
 
-    startTimer() {
-        const timerDisplay = document.getElementById('timer');
-        this.timerInterval = setInterval(() => {
-            this.timer++;
-            if (timerDisplay) {
-                const minutes = Math.floor(this.timer / 60);
-                const seconds = this.timer % 60;
-                timerDisplay.textContent = `Tiempo: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-            }
-        }, 1000);
+    createParticles(card) {
+        const container = card.parentElement;
+        const rect = card.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        for (let i = 0; i < 10; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle heart';
+            particle.innerHTML = '❤️';
+            
+            const angle = (i / 10) * Math.PI * 2;
+            const distance = 50;
+            const x = Math.cos(angle) * distance;
+            const y = Math.sin(angle) * distance;
+            
+            particle.style.setProperty('--random-x', `${(Math.random() - 0.5) * 100}px`);
+            particle.style.left = `${x}px`;
+            particle.style.top = `${y}px`;
+            
+            container.appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 1500);
+        }
     }
 
-    stopTimer() {
-        if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-            this.timerInterval = null;
-        }
+    updateCardStyles() {
+        const cards = document.querySelectorAll('.memory-card');
+        cards.forEach(card => {
+            card.style.transformStyle = 'preserve-3d';
+            card.style.perspective = '1000px';
+            card.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)';
+        });
     }
 
     handleGameComplete() {
-        this.stopTimer();
-        
         setTimeout(() => {
             Swal.fire({
-                title: '¡Felicitaciones! 🎉',
+                title: '¡Lo Lograste! 🎉',
                 html: `
-                    ¡Has encontrado todos los pares!<br>
-                    Tiempo: ${document.getElementById('timer').textContent}<br>
-                    Movimientos: ${this.moves}
+                    <p>Has encontrado todos nuestros momentos especiales</p>
+                    <p>Movimientos: ${this.moves}</p>
                 `,
                 icon: 'success',
-                confirmButtonText: 'Continuar'
+                confirmButtonText: 'Continuar nuestra historia ❤️'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Avanzar a la siguiente página
-                    window.valentineApp.navigatePage('next');
+                    const nextPageBtn = document.getElementById('nextPage');
+                    if (nextPageBtn) nextPageBtn.click();
                 }
             });
         }, 500);
     }
-
-    resetGame() {
-        this.stopTimer();
-        this.reset();
-        this.createCards();
-        this.shuffleCards();
-        this.updateMovesDisplay();
-        this.updatePairsDisplay();
-        this.startTimer();
-        
-        const timerDisplay = document.getElementById('timer');
-        if (timerDisplay) {
-            timerDisplay.textContent = 'Tiempo: 0:00';
-        }
-    }
 }
 
-// La clase principal ValentineApp
-class ValentineApp {
-    constructor() {
-        this.currentSection = 'loader';
-        this.initializeElements();
-        if (this.elementsLoaded) {
-            this.setupAudio();
-            this.setupEventListeners();
-            this.loadResources();
-        }
-    }
-
-    initializeElements() {
-        try {
-            this.loader = document.getElementById('loader');
-            this.progressBar = this.loader?.querySelector('.progress-bar');
-            this.cover = document.getElementById('cover');
-            this.book = document.getElementById('book');
-            this.specialEnding = document.getElementById('special-ending');
-
-            this.startButton = document.getElementById('startButton');
-            this.yesBtn = document.getElementById('yesBtn');
-            this.noBtn = document.getElementById('noBtn');
-            this.prevPage = document.getElementById('prevPage');
-            this.nextPage = document.getElementById('nextPage');
-            this.pageNumber = document.getElementById('pageNumber');
-
-            this.currentPage = 0;
-            this.pages = document.querySelectorAll('.page');
-            this.totalPages = this.pages.length;
-            
-            this.memoryGame = new MemoryGame();
-            this.stateManager = new StateManager();
-            
-            this.elementsLoaded = true;
-        } catch (error) {
-            console.error('Error inicializando elementos:', error);
-            this.elementsLoaded = false;
-            this.showError('Error al cargar la aplicación');
-        }
-    }
-
-    initializePages() {
-        // Asegurarse de que todas las páginas empiecen ocultas
-        this.pages.forEach((page, index) => {
-            if (index === 0) {
-                page.classList.remove('hidden');
-            } else {
-                page.classList.add('hidden');
-            }
-            // Resetear cualquier transformación previa
-            page.style.transform = '';
-            page.style.opacity = '';
-        });
-    }
-
-    loadResources() {
-        const resources = [
-            { type: 'image', path: 'imagenes/1.jpg' },
-            { type: 'image', path: 'imagenes/2.jpg' },
-            { type: 'image', path: 'imagenes/3.jpg' },
-            { type: 'image', path: 'imagenes/4.jpg' },
-            { type: 'image', path: 'imagenes/5.jpg' },
-            { type: 'image', path: 'imagenes/6.jpg' },
-            { type: 'image', path: 'imagenes/7.jpg' }
-        ];
-
-        let loadedCount = 0;
-        const totalResources = resources.length;
-
-        const updateProgress = () => {
-            loadedCount++;
-            const progress = (loadedCount / totalResources) * 100;
-            if (this.progressBar) {
-                this.progressBar.style.width = `${progress}%`;
-            }
-            
-            if (loadedCount === totalResources) {
-                this.finishLoading();
-            }
-        };
-
-        resources.forEach(resource => {
-            if (resource.type === 'image') {
-                const img = new Image();
-                img.onload = () => updateProgress();
-                img.onerror = () => {
-                    console.error(`Error cargando imagen: ${resource.path}`);
-                    updateProgress();
-                };
-                img.src = resource.path;
-            }
-        });
-    }
-
-    setupEventListeners() {
-        // Asegurar que los botones de navegación funcionen
-        if (this.startButton) {
-            this.startButton.addEventListener('click', () => {
-                this.startStory();
-                // Intentar reproducir música al hacer clic
-                if (this.audio && this.audio.paused) {
-                    this.audio.play().catch(console.log);
-                }
-            });
-        }
-
-        // Navegación mejorada
-        if (this.prevPage) {
-            this.prevPage.addEventListener('click', () => {
-                if (this.currentPage > 0) {
-                    this.navigatePage('prev');
-                }
-            });
-        }
-
-        if (this.nextPage) {
-            this.nextPage.addEventListener('click', () => {
-                if (this.currentPage < this.totalPages - 1) {
-                    this.navigatePage('next');
-                }
-            });
-        }
-
-        // Teclas de navegación
-        document.addEventListener('keydown', (e) => this.handleKeyNavigation(e));
-
-        // Botón que se escapa
-        if (this.noBtn) {
-            this.setupEscapingButton();
-        }
-
-        if (this.yesBtn) {
-            this.yesBtn.addEventListener('click', () => {
-                Swal.fire({
-                    title: '¡Gracias por decir sí! ❤️',
-                    text: 'Te amo muchísimo...',
-                    imageUrl: 'imagenes/7.jpg',
-                    imageWidth: 'auto',
-                    imageHeight: 'auto',
-                    imageAlt: 'Imagen final especial',
-                    confirmButtonText: 'Te Amo ❤️',
-                    customClass: {
-                        image: 'swal-responsive-image',
-                        popup: 'swal-wide'
-                    },
-                    showClass: {
-                        popup: 'animate__animated animate__fadeInDown'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__fadeOutUp'
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.showSpecialEnding();
-                    }
-                });
-            });
-        }
-    }
-
-    startStory() {
-        if (!this.cover || !this.book) return;
-
-        gsap.timeline()
-            .to(this.cover, {
-                opacity: 0,
-                duration: 0.5,
-                onComplete: () => {
-                    this.cover.style.display = 'none';
-                    this.book.style.display = 'block';
-                    gsap.to(this.book, {
-                        opacity: 1,
-                        duration: 0.5,
-                        onComplete: () => {
-                            this.book.classList.add('active');
-                            this.showPage(0);
-                        }
-                    });
-                }
-            });
-    }
-
-    showPage(index) {
-        // Ocultar página actual
-        const currentPage = document.querySelector('.page.active');
-        if (currentPage) {
-            currentPage.classList.remove('active');
-            currentPage.classList.add('previous');
-        }
-
-        // Mostrar nueva página
-        const nextPage = this.pages[index];
-        if (nextPage) {
-            nextPage.classList.remove('previous');
-            nextPage.style.visibility = 'visible';
-            nextPage.classList.add('active');
-            
-            // Actualizar navegación
-            this.currentPage = index;
-            this.updateNavigation();
-            
-            // Manejar animaciones específicas
-            this.handlePageSpecificAnimations(index);
-        }
-    }
-
-    navigatePage(direction) {
-        const nextIndex = direction === 'next' ? 
-            this.currentPage + 1 : 
-            this.currentPage - 1;
-
-        if (nextIndex >= 0 && nextIndex < this.totalPages) {
-            const currentPage = this.pages[this.currentPage];
-            const nextPage = this.pages[nextIndex];
-            
-            // Asegurarse de que la página siguiente sea visible antes de la animación
-            nextPage.style.display = 'block';
-            nextPage.style.visibility = 'visible';
-            
-            gsap.timeline()
-                .to(currentPage, {
-                    opacity: 0,
-                    x: direction === 'next' ? -100 : 100,
-                    duration: 0.3,
-                    onComplete: () => {
-                        currentPage.style.visibility = 'hidden';
-                        currentPage.classList.add('hidden');
-                    }
-                })
-                .fromTo(nextPage, 
-                    {
-                        opacity: 0,
-                        x: direction === 'next' ? 100 : -100
-                    },
-                    {
-                        opacity: 1,
-                        x: 0,
-                        duration: 0.3,
-                        onComplete: () => {
-                            this.currentPage = nextIndex;
-                            this.updateNavigation();
-                            nextPage.classList.remove('hidden');
-                            this.handlePageSpecificAnimations(nextIndex);
-                        }
-                    }
-                );
-        }
-    }
-
-    handleKeyNavigation(e) {
-        if (e.key === 'ArrowRight') {
-            this.navigatePage('next');
-        } else if (e.key === 'ArrowLeft') {
-            this.navigatePage('prev');
-        }
-    }
-
-    updatePageVisibility(pageIndex) {
-        if (pageIndex === this.currentPage) return;
-
-        const currentPage = this.pages[this.currentPage];
-        const nextPage = this.pages[pageIndex];
-        const direction = pageIndex > this.currentPage ? 1 : -1;
-
-        // Asegurarse de que ambas páginas estén en el DOM
-        currentPage.classList.remove('hidden');
-        nextPage.classList.remove('hidden');
-
-        gsap.timeline()
-            .to(currentPage, {
-                opacity: 0,
-                x: -20 * direction,
-                duration: 0.3,
-                onComplete: () => {
-                    currentPage.classList.add('hidden');
-                    gsap.set(currentPage, { clearProps: "all" });
-                }
-            })
-            .set(nextPage, {
-                opacity: 0,
-                x: 20 * direction,
-                immediate: true
-            })
-            .to(nextPage, {
-                opacity: 1,
-                x: 0,
-                duration: 0.3,
-                onComplete: () => {
-                    this.currentPage = pageIndex;
-                    this.handlePageSpecificAnimations(pageIndex);
-                    this.updateNavigation();
-                }
-            });
-
-        this.stateManager.setState({ currentPage: pageIndex });
-    }
-
-    handlePageSpecificAnimations(pageIndex) {
-        const currentPage = this.pages[pageIndex];
-        if (currentPage.classList.contains('hidden')) {
-            currentPage.classList.remove('hidden');
-        }
-
-        switch(pageIndex) {
-            case 3:
-                if (this.memoryGame) {
-                    this.memoryGame.initialize();
-                }
-                break;
-            case 4:
-                this.animateFuturePage();
-                break;
-            case 5:
-                this.animateFinalPage();
-                break;
-        }
-    }
-
-    animateFuturePage() {
-        const futurePage = this.pages[4];
-        if (!futurePage) return;
-
-        // Asegurar que la página sea visible
-        futurePage.style.display = 'block';
-        futurePage.style.visibility = 'visible';
-        futurePage.style.opacity = '1';
-
-        const futureGallery = futurePage.querySelector('.future-gallery');
-        if (futureGallery) {
-            futureGallery.style.opacity = '0';
-            gsap.to(futureGallery, {
-                opacity: 1,
-                y: 0,
-                duration: 1
-            });
-        }
-    }
-
-    animateFinalPage() {
-        const finalPage = this.pages[5];
-        if (!finalPage) return;
-
-        // Asegurar que la página sea visible
-        finalPage.style.display = 'block';
-        finalPage.style.visibility = 'visible';
-        finalPage.style.opacity = '1';
-
-        const finalGallery = finalPage.querySelector('.final-gallery');
-        if (finalGallery) {
-            finalGallery.style.opacity = '0';
-            gsap.to(finalGallery, {
-                opacity: 1,
-                duration: 1
-            });
-        }
-    }
-
-    updateNavigation() {
-        if (this.pageNumber) {
-            this.pageNumber.textContent = `${this.currentPage + 1}/${this.totalPages}`;
-        }
-        if (this.prevPage) {
-            this.prevPage.style.visibility = this.currentPage === 0 ? 'hidden' : 'visible';
-            this.prevPage.disabled = this.currentPage === 0;
-        }
-        if (this.nextPage) {
-            this.nextPage.style.visibility = this.currentPage === this.totalPages - 1 ? 'hidden' : 'visible';
-            this.nextPage.disabled = this.currentPage === this.totalPages - 1;
-        }
-    }
-
-    setupEscapingButton() {
-        let count = 0;
-        const phrases = [
-            "No",
-            "¿Estás segur@?",
-            "¿De verdad?",
-            "Piénsalo bien...",
-            "¡Última oportunidad!",
-            "¿Segur@ segur@?",
-            "¡Me vas a hacer llorar!",
-            "¡No seas así! 🥺"
-        ];
-
-        let isMoving = false;
-
-        this.noBtn.addEventListener('mouseover', () => {
-            if (isMoving) return;
-            isMoving = true;
-
-            count = (count + 1) % phrases.length;
-            this.noBtn.textContent = phrases[count];
-            
-            const maxX = window.innerWidth - this.noBtn.offsetWidth - 50;
-            const maxY = window.innerHeight - this.noBtn.offsetHeight - 50;
-            
-            const randomX = 50 + Math.random() * maxX;
-            const randomY = 50 + Math.random() * maxY;
-            
-            gsap.to(this.noBtn, {
-                left: randomX,
-                top: randomY,
-                duration: 0.3,
-                ease: "power2.out",
-                onComplete: () => {
-                    isMoving = false;
-                }
-            });
-        });
-    }
-
-    // Continuación de la clase ValentineApp
-    showSpecialEnding() {
-        if (!this.specialEnding) return;
-
-        // Ocultar el libro con una animación suave
-        gsap.to(this.book, {
-            opacity: 0,
-            scale: 0.95,
-            duration: 0.5,
-            onComplete: () => {
-                this.book.style.display = 'none';
-                
-                // Mostrar el final especial
-                this.specialEnding.style.display = 'flex';
-                this.specialEnding.style.opacity = '0';
-                
-                gsap.timeline()
-                    .to(this.specialEnding, {
-                        opacity: 1,
-                        scale: 1,
-                        duration: 0.5
-                    })
-                    .from('.ending-content', {
-                        y: 30,
-                        opacity: 0,
-                        duration: 0.5
-                    })
-                    .from('.final-image-container', {
-                        scale: 0,
-                        opacity: 0,
-                        duration: 0.5,
-                        ease: "back.out(1.7)"
-                    });
-
-                this.createConfetti();
-                this.startEndingAnimations();
-            }
-        });
-    }
-
-    createConfetti() {
-        const container = document.querySelector('.celebration-effects');
-        if (!container) return;
-
-        for (let i = 0; i < 100; i++) {
-            const confetti = document.createElement('div');
-            confetti.className = 'confetti';
-            confetti.style.left = `${Math.random() * 100}%`;
-            confetti.style.animationDelay = `${Math.random() * 3}s`;
-            confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-            container.appendChild(confetti);
-        }
-    }
-
-    startEndingAnimations() {
-        // Crear corazones flotantes
-        const createFloatingHearts = () => {
-            const container = document.querySelector('.floating-hearts');
-            if (!container) return;
-
-            const heart = document.createElement('div');
-            heart.className = 'floating-heart';
-            heart.innerHTML = '❤️';
-            heart.style.left = `${Math.random() * 100}%`;
-            heart.style.animationDuration = `${2 + Math.random() * 3}s`;
-            container.appendChild(heart);
-
-            setTimeout(() => heart.remove(), 5000);
-        };
-
-        // Iniciar intervalo de corazones
-        const heartInterval = setInterval(createFloatingHearts, 300);
-
-        // Animación del mensaje final
-        const endingMessage = document.querySelector('.ending-message');
-        if (endingMessage) {
-            gsap.from(endingMessage, {
-                y: 30,
-                opacity: 0,
-                duration: 1,
-                delay: 0.5
-            });
-        }
-
-        // Animación de la imagen final
-        const finalImage = document.querySelector('.final-image-container');
-        if (finalImage) {
-            gsap.from(finalImage, {
-                scale: 0,
-                rotation: -10,
-                duration: 1,
-                delay: 1,
-                ease: "back.out(1.7)"
-            });
-        }
-
-        // Animación del marco
-        const frame = document.querySelector('.image-frame');
-        if (frame) {
-            gsap.to(frame, {
-                rotation: 360,
-                duration: 20,
-                repeat: -1,
-                ease: "none"
-            });
-        }
-
-        // Limpiar intervalo cuando se desmonte
-        this.stateManager.setState({ 
-            endingAnimationsStarted: true,
-            cleanupFunction: () => clearInterval(heartInterval)
-        });
-    }
-
-    finishLoading() {
-        if (this.loader) {
-            gsap.to(this.loader, {
-                opacity: 0,
-                duration: 0.5,
-                onComplete: () => {
-                    this.loader.style.display = 'none';
-                    this.showCover(); // Cambiar a mostrar la portada primero
-                }
-            });
-        }
-    }
-
-    showCover() {
-        if (this.cover) {
-            this.cover.style.display = 'flex';
-            this.cover.style.visibility = 'visible';
-            this.cover.style.opacity = '0';
-            
-            gsap.to(this.cover, {
-                opacity: 1,
-                duration: 0.5,
-                onComplete: () => {
-                    // Asegurarse de que el botón de inicio sea visible
-                    if (this.startButton) {
-                        gsap.from(this.startButton, {
-                            y: 30,
-                            opacity: 0,
-                            duration: 0.5
-                        });
-                    }
-                }
-            });
-        }
-    }
-
-    setupAudio() {
-        this.audio = document.getElementById('backgroundMusic');
-        this.volumeSlider = document.getElementById('volumeSlider');
-        this.toggleMusicBtn = document.getElementById('toggleMusic');
-
-        if (this.audio && this.volumeSlider && this.toggleMusicBtn) {
-            this.audio.volume = 0.5;
-            
-            // Manejar reproducción automática
-            document.addEventListener('click', () => {
-                if (this.audio.paused) {
-                    this.audio.play().catch(console.log);
-                }
-            }, { once: true });
-
-            this.toggleMusicBtn.addEventListener('click', () => {
-                if (this.audio.paused) {
-                    this.audio.play().then(() => {
-                        this.toggleMusicBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
-                    }).catch(() => {
-                        console.log('Error al reproducir el audio');
-                    });
-                } else {
-                    this.audio.pause();
-                    this.toggleMusicBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
-                }
-            });
-
-            this.volumeSlider.addEventListener('input', (e) => {
-                this.audio.volume = e.target.value;
-            });
-        }
-    }
-
-    startApp() {
-        if (this.cover) {
-            this.cover.style.display = 'flex';
-            gsap.to(this.cover, {
-                opacity: 1,
-                duration: 0.5,
-                delay: 0.2
-            });
-        }
-        
-        this.startInitialAnimations();
-    }
-
-    startInitialAnimations() {
-        // Animación del corazón inicial
-        gsap.from('.heart-container', {
-            scale: 0,
-            rotation: 180,
-            duration: 1.5,
-            ease: "elastic.out(1, 0.3)"
-        });
-
-        // Animación del título
-        gsap.from('.main-title', {
-            y: 50,
-            opacity: 0,
-            duration: 1,
-            delay: 0.5
-        });
-
-        // Animación del botón de inicio
-        gsap.from('#startButton', {
-            y: 30,
-            opacity: 0,
-            duration: 1,
-            delay: 1
-        });
-
-        // Crear efecto de estrellas en el fondo
-        this.createStarryBackground();
-    }
-
-    createStarryBackground() {
-        const starsContainer = document.querySelector('.stars-container');
-        if (!starsContainer) return;
-
-        for (let i = 0; i < 50; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.left = `${Math.random() * 100}%`;
-            star.style.top = `${Math.random() * 100}%`;
-            star.style.animationDelay = `${Math.random() * 3}s`;
-            starsContainer.appendChild(star);
-        }
-    }
-
-    showError(message) {
-        Swal.fire({
-            title: 'Error',
-            text: message,
-            icon: 'error',
-            confirmButtonText: 'OK'
-        });
-    }
-
-    // Método para limpiar recursos y eventos
-    destroy() {
-        // Limpiar eventos
-        window.removeEventListener('keydown', this.handleKeyNavigation);
-        
-        // Detener animaciones
-        gsap.killTweensOf('*');
-        
-        // Limpiar intervalos y timeouts
-        const state = this.stateManager.getState();
-        if (state.cleanupFunction) {
-            state.cleanupFunction();
-        }
-        
-        // Limpiar el juego de memoria si existe
-        if (this.memoryGame) {
-            this.memoryGame.stopTimer();
-        }
-    }
-}
-
-// Inicialización de la aplicación
+// Inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    try {
-        window.valentineApp = new ValentineApp();
-    } catch (error) {
-        console.error('Error al iniciar la aplicación:', error);
-        Swal.fire({
-            title: 'Error',
-            text: 'No se pudo iniciar la aplicación correctamente',
-            icon: 'error',
-            confirmButtonText: 'OK'
-        });
-    }
+    window.valentineApp = new ValentineApp();
+    
+    // Hacer las instancias disponibles globalmente de manera segura
+    window.valentineApp = valentineApp;
+
+    // Iniciar la aplicación
+    valentineApp.startLoader();
 });
 
-// Limpieza al cerrar la ventana
+// Función para destruir la aplicación al cerrar
 window.addEventListener('beforeunload', () => {
     if (window.valentineApp) {
-        window.valentineApp.destroy();
+        if (window.valentineApp.audio) {
+            window.valentineApp.audio.pause();
+        }
+        // Limpiar otras referencias si es necesario
+        window.valentineApp = null;
     }
 });

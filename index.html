@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Una historia de amor especial para San Valentín">
-    <meta name="theme-color" content="#ff6b6b">
-    <title>Nuestra Historia de Amor ❤️</title>
+    <meta name="description" content="Para mi Coquito en San Valentín - Nuestra Historia de Amor">
+    <meta name="theme-color" content="#9333ea">
+    <title>Para mi Coquito ❤️</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Estilos CSS -->
     <link rel="stylesheet" href="styles.css">
@@ -30,7 +30,7 @@
     </audio>
 </head>
 <body>
-    <!-- Controles de música (siempre visibles) -->
+    <!-- Controles de música -->
     <div class="music-controls">
         <button id="toggleMusic" class="control-button">
             <i class="fas fa-volume-up"></i>
@@ -38,11 +38,37 @@
         <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5">
     </div>
 
+    <!-- Contador para el primer encuentro -->
+    <div id="countdown" class="countdown-container">
+        <div class="countdown-content">
+            <h3>Primer Encuentro Face to Face</h3>
+            <div class="countdown-timer">
+                <div class="countdown-item">
+                    <span id="days">00</span>
+                    <span class="label">Días</span>
+                </div>
+                <div class="countdown-item">
+                    <span id="hours">00</span>
+                    <span class="label">Horas</span>
+                </div>
+                <div class="countdown-item">
+                    <span id="minutes">00</span>
+                    <span class="label">Minutos</span>
+                </div>
+                <div class="countdown-item">
+                    <span id="seconds">00</span>
+                    <span class="label">Segundos</span>
+                </div>
+            </div>
+            <p class="countdown-message">para verte por primera vez, mi Coquito ❤️</p>
+        </div>
+    </div>
+
     <!-- Loader inicial -->
     <div id="loader" class="loader-container">
         <div class="loader-content">
             <div class="loader-heart">❤️</div>
-            <p class="loader-text">Cargando nuestra historia...</p>
+            <p class="loader-text">Cargando nuestra historia de amor...</p>
             <div class="loader-progress">
                 <div class="progress-bar"></div>
             </div>
@@ -57,205 +83,339 @@
                 <div class="heart beating"></div>
             </div>
             <h1 class="main-title animate__animated animate__heartBeat">
-                ¿Quieres ser mi San Valentín?
+                Mi Querida Coquito...
             </h1>
+            <p class="cover-subtitle">De 2020 a la eternidad ❤️</p>
             <button id="startButton" class="glow-button animate__animated animate__pulse animate__infinite">
-                <i class="fas fa-heart"></i> Comenzar nuestra historia
+                <i class="fas fa-heart"></i> Nuestra Historia de Amor
                 <i class="fas fa-music music-icon"></i>
             </button>
         </div>
 
-        <!-- Libro de historia -->
-        <div id="book" class="book-container hidden">
-            <!-- Navegación del libro -->
+        <!-- Contenedor del libro - sin clase hidden -->
+        <div id="book" class="book-container">
             <div class="book-navigation">
                 <button id="prevPage" class="nav-button" aria-label="Página anterior">
                     <i class="fas fa-chevron-left"></i>
                 </button>
-                <span id="pageNumber" role="status" aria-live="polite">1/6</span>
+                <span id="pageNumber" role="status" aria-live="polite">1/8</span>
                 <button id="nextPage" class="nav-button" aria-label="Página siguiente">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
-
-            <!-- Página 1: Primer Encuentro -->
-            <div class="page" id="page1">
-                <div class="page-content">
-                    <div class="image-container" tabindex="0">
-                        <img src="imagenes/1.jpg" alt="Nuestro primer momento juntos" class="page-image">
-                        <div class="image-overlay"></div>
-                    </div>
-                    <h2 class="page-title">El primer mensaje</h2>
-                    <div class="chat-recreation" aria-label="Recreación de nuestra primera conversación">
-                        <div class="message-bubble left animate__animated animate__fadeInLeft">
-                            <p>¿Te conozco? 🤔</p>
-                            <span class="time">12:30</span>
-                        </div>
-                        <div class="message-bubble right animate__animated animate__fadeInRight">
-                            <p>No, pero nos podemos conocer 😊</p>
-                            <span class="time">12:31</span>
-                        </div>
-                        <div class="typing-indicator" aria-hidden="true">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Página 2: Conversaciones -->
-            <div class="page" id="page2">
-                <div class="page-content">
-                    <div class="polaroid-container floating">
-                        <img src="imagenes/2.jpg" alt="Nuestras conversaciones especiales" class="polaroid-image">
-                        <div class="polaroid-caption">Nuestras primeras conversaciones</div>
-                    </div>
-                    <h2 class="page-title">Conversaciones Interminables</h2>
-                    <div class="chat-container scrollable" aria-live="polite"></div>
-                    <div class="message-counter">
-                        <i class="fas fa-comments"></i>
-                        <span id="messageCount" aria-live="polite">12453</span> mensajes compartidos
-                    </div>
-                </div>
-            </div>
-
-            <!-- Página 3: Videollamadas -->
-            <div class="page" id="page3">
-                <div class="page-content">
-                    <div class="video-call-frame">
-                        <div class="video-call-header">
-                            <span class="call-duration" aria-live="polite">00:00:00</span>
-                            <div class="call-controls">
-                                <button class="control-button" aria-label="Micrófono">
-                                    <i class="fas fa-microphone"></i>
-                                </button>
-                                <button class="control-button" aria-label="Cámara">
-                                    <i class="fas fa-video"></i>
-                                </button>
-                                <button class="control-button end-call" aria-label="Finalizar llamada">
-                                    <i class="fas fa-phone-slash"></i>
-                                </button>
+            
+            <div class="pages-wrapper">
+                <!-- Las páginas existentes se mantienen igual -->
+                <!-- Página 1: El Inicio -->
+                <div class="page" id="page1">
+                    <div class="page-content">
+                        <div class="timeline-container">
+                            <div class="timeline-date">2020</div>
+                            <div class="chat-recreation" aria-label="Nuestra primera conversación">
+                                <div class="message-bubble left animate__animated animate__fadeInLeft">
+                                    <p>¿Nos conocemos? 🤔</p>
+                                    <span class="time">12:30</span>
+                                </div>
+                                <div class="message-bubble right animate__animated animate__fadeInRight">
+                                    <p>No, pero nos podemos conocer 😊</p>
+                                    <span class="time">12:31</span>
+                                </div>
                             </div>
-                        </div>
-                        <img src="imagenes/3.jpg" alt="Nuestras videollamadas" class="video-call-image">
-                        <div class="video-call-footer">
-                            <div class="connection-status">
-                                <i class="fas fa-signal"></i> Conexión estable
-                            </div>
-                        </div>
-                    </div>
-                    <div class="call-stats">
-                        <div class="stat-item">
-                            <i class="fas fa-phone"></i>
-                            <span id="callCount" aria-live="polite">42</span> llamadas
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-clock"></i>
-                            <span id="totalTime" aria-live="polite">126</span> horas juntos
+                            <p class="timeline-description">
+                                Y así, con un mensaje inesperado, comenzó nuestra historia...
+                            </p>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Página 4: Juego de Memoria -->
-            <div class="page" id="page4">
-                <div class="page-content">
-                    <h2 class="page-title">Momentos Especiales</h2>
-                    <div class="game-container">
-                        <div class="game-header">
-                            <div class="game-stats">
+                <!-- Página 2: La Pandemia -->
+                <div class="page" id="page2">
+                    <div class="page-content">
+                        <div class="memoir-container">
+                            <h2 class="memoir-title">Mi Luz en la Oscuridad</h2>
+                            <div class="memoir-text">
+                                <p>Durante los días más oscuros de la pandemia, te convertiste en mi razón para sonreír. Cada mensaje tuyo iluminaba mi día, cada audio era un regalo.</p>
+                                <p>Fuiste mi refugio cuando todo parecía incierto, mi escape de la realidad, mi motivo para seguir adelante.</p>
+                            </div>
+                            <div class="stats-container">
                                 <div class="stat-item">
-                                    <i class="fas fa-sync-alt"></i>
-                                    <span id="moves" aria-live="polite">Movimientos: 0</span>
+                                    <i class="fas fa-comments"></i>
+                                    <span>Miles de mensajes compartidos</span>
                                 </div>
                                 <div class="stat-item">
                                     <i class="fas fa-heart"></i>
-                                    <span id="pairs" aria-live="polite">Pares: 0/4</span>
-                                </div>
-                                <div class="stat-item">
-                                    <i class="fas fa-clock"></i>
-                                    <span id="timer" aria-live="polite">Tiempo: 0:00</span>
+                                    <span>Infinitos momentos especiales</span>
                                 </div>
                             </div>
-                            <button id="resetGame" class="reset-button">
-                                <i class="fas fa-redo"></i> Reiniciar
-                            </button>
-                        </div>
-                        <div class="memory-cards-container">
-                            <div class="memory-cards" role="grid" aria-label="Juego de memoria"></div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Página 5: Nuestro Futuro -->
-            <div class="page" id="page5">
-                <div class="page-content">
-                    <div class="future-gallery">
-                        <img src="imagenes/6.jpg" alt="Nuestro futuro juntos" class="future-image">
-                        <div class="gallery-overlay">
-                            <h3>Nuestros Sueños</h3>
-                        </div>
-                    </div>
-                    <div class="love-letter">
-                        <div class="letter-content">
-                            <h2>Mi amor...</h2>
-                            <p class="typewriter-text">
-                                A pesar de la distancia, cada día me enamoro más de ti...
-                                Construiremos juntos un futuro lleno de amor y felicidad.
-                            </p>
-                        </div>
-                        <div class="letter-footer">
-                            <i class="fas fa-heart beating"></i>
+                <!-- Página 3: El Reencuentro -->
+                <div class="page" id="page3">
+                    <div class="page-content">
+                        <div class="reunion-container">
+                            <h2 class="reunion-title">El Destino Nos Reunió</h2>
+                            <div class="christmas-card">
+                                <div class="card-date">Navidad 2024</div>
+                                <p class="card-text">
+                                    "Decidí escribirte una vez más, sin saber que el destino tenía preparado el momento perfecto para nuestro reencuentro..."
+                                </p>
+                            </div>
+                            <div class="reunion-gallery">
+                                <div class="gallery-item">
+                                    <img src="imagenes/1.jpg" alt="Nuestro reencuentro" class="reunion-image">
+                                    <div class="image-caption">El inicio de nuestra nueva historia</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Página Final -->
-            <div class="page" id="finalPage">
-                <div class="page-content final-page">
-                    <div class="final-gallery">
-                        <div class="gallery-item">
-                            <img src="imagenes/5.jpg" alt="Nuestro momento más especial" class="final-image">
+                <!-- Página 4: Razones -->
+                <div class="page" id="page4">
+                    <div class="page-content">
+                        <h2 class="reasons-title">Lo Que Amo de Ti, Coquito</h2>
+                        <div class="reasons-container">
+                            <div class="reason-card">
+                                <i class="fas fa-star"></i>
+                                <p>Tus ojitos brillantes que iluminan mi día</p>
+                            </div>
+                            <div class="reason-card">
+                                <i class="fas fa-smile"></i>
+                                <p>Tu hermosa sonrisa natural</p>
+                            </div>
+                            <div class="reason-card">
+                                <i class="fas fa-heart"></i>
+                                <p>Tu entusiasmo por las pequeñas cosas</p>
+                            </div>
+                            <div class="reason-card">
+                                <i class="fas fa-magic"></i>
+                                <p>Tu forma única de ser</p>
+                            </div>
+                            <div class="reason-card">
+                                <i class="fas fa-music"></i>
+                                <p>Tu dulce voz que alegra mis días</p>
+                            </div>
+                            <div class="reason-card">
+                                <i class="fas fa-crown"></i>
+                                <p>Tu carita coqueta de Coquito</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="final-decision animate__animated animate__bounceIn">
-                        <h2>Entonces...</h2>
-                        <h3 class="proposal">¿Quieres ser mi San Valentín?</h3>
-                        <div class="decision-buttons">
-                            <button id="yesBtn" class="glow-button">
-                                <i class="fas fa-heart"></i> ¡Sí! ❤️
-                            </button>
-                            <button id="noBtn" class="move-button">
-                                <i class="fas fa-times"></i> No
-                            </button>
+                </div>
+
+                <!-- Página 5: Nuestros Momentos -->
+                <div class="page" id="page5">
+                    <div class="page-content">
+                        <h2 class="moments-title">Nuestras Videollamadas</h2>
+                        <div class="moments-gallery">
+                            <!-- Las imágenes se cargarán dinámicamente -->
+                        </div>
+                        <div class="video-call-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-video"></i>
+                                <span id="callCount">Incontables sonrisas compartidas</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i>
+                                <span id="totalTime">Horas de felicidad</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Página 6: Juego de Memoria -->
+                <div class="page" id="page6">
+                    <div class="page-content">
+                        <h2 class="memory-title">Momentos Especiales</h2>
+                        <div class="game-container">
+                            <div class="game-header">
+                                <div class="game-stats">
+                                    <div class="stat-item">
+                                        <i class="fas fa-sync-alt"></i>
+                                        <span id="moves">Movimientos: 0</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <i class="fas fa-heart"></i>
+                                        <span id="pairs">Pares: 0/4</span>
+                                    </div>
+                                </div>
+                                <button id="resetGame" class="reset-button">
+                                    <i class="fas fa-redo"></i> Reiniciar
+                                </button>
+                            </div>
+                            <div class="memory-cards"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Página 7: Promesas -->
+                <div class="page" id="page7">
+                    <div class="page-content">
+                        <h2 class="promises-title">Mis Promesas Para Ti</h2>
+                        <div class="promises-container">
+                            <div class="promise-card">
+                                <div class="promise-icon">❤️</div>
+                                <p class="promise-text">Amarte más cada día</p>
+                            </div>
+                            <div class="promise-card">
+                                <div class="promise-icon">🌟</div>
+                                <p class="promise-text">Ser tu apoyo incondicional</p>
+                            </div>
+                            <div class="promise-card">
+                                <div class="promise-icon">🎭</div>
+                                <p class="promise-text">Hacerte reír en los momentos difíciles</p>
+                            </div>
+                            <div class="promise-card">
+                                <div class="promise-icon">🌈</div>
+                                <p class="promise-text">Construir un futuro juntos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Página 8: La Pregunta Final -->
+                <div class="page" id="finalPage">
+                    <div class="page-content final-page-wrapper">
+                        <!-- Borde decorativo de corazones -->
+                        <div class="heart-border">
+                            <span class="heart animate__animated animate__heartBeat animate__infinite">❤️</span>
+                            <span class="heart animate__animated animate__heartBeat animate__infinite">❤️</span>
+                            <span class="heart animate__animated animate__heartBeat animate__infinite">❤️</span>
+                            <span class="heart animate__animated animate__heartBeat animate__infinite">❤️</span>
+                        </div>
+
+                        <div class="valentine-content animate__animated animate__fadeIn">
+                            <h2 class="valentine-title">Mi Primer San Valentín</h2>
+                            
+                            <div class="valentine-message">
+                                <p>Hoy, 14 de febrero de 2025, es nuestro primer San Valentín juntos.</p>
+                                <p>Las lágrimas que derramé hoy fueron de felicidad, porque por primera vez siento el amor verdadero de alguien tan especial como tú.</p>
+                            </div>
+                            
+                            <div class="valentine-question animate__animated animate__heartBeat">
+                                ¿Quieres ser mi San Valentín hoy y siempre?
+                            </div>
+                            
+                            <div class="decision-buttons">
+                                <button id="yesBtn" class="yes-button animate__animated animate__pulse animate__infinite">
+                                    <i class="fas fa-heart"></i> ¡Sí! ❤️
+                                </button>
+                                <button id="noBtn" class="no-button">
+                                    <i class="fas fa-times"></i> No
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Final especial -->
-        <div id="special-ending" class="section hidden">
-            <div class="floating-hearts" aria-hidden="true"></div>
-            <div class="ending-content animate__animated animate__zoomIn">
-                <h1>¡Sabía que dirías que sí! 💕</h1>
-                <p class="ending-message">Gracias por ser tú y por hacer cada día más especial...</p>
-                <div class="final-image-container">
-                    <img src="imagenes/7.jpg" alt="Nosotros felices juntos" class="final-image">
-                    <div class="image-frame"></div>
+        <!-- Final especial - Quitar la clase hidden -->
+        <div id="special-ending" class="section">
+            <div class="falling-hearts-container"></div>
+            <div class="romantic-card">
+                <div class="card-inner">
+                    <img src="imagenes/7.jpg" alt="Nosotros" class="card-image">
+                    <div class="card-content">
+                        <h2>Te Amo mi Coquito ❤️</h2>
+                        <p>En 7 días te veré por primera vez...</p>
+                        <p>Y sé que será el comienzo de algo maravilloso.</p>
+                    </div>
                 </div>
-                <div class="celebration-effects" aria-hidden="true">
-                    <div class="confetti"></div>
-                    <div class="sparkles"></div>
+            </div>
+        </div>
+
+        <!-- Sección de Timeline -->
+        <div id="timeline" class="timeline-section hidden">
+            <div class="timeline-wrapper">
+                <div class="timeline-item" data-year="2020">
+                    <div class="timeline-content">
+                        <h3>El Primer Mensaje</h3>
+                        <p>"¿Nos conocemos?" - El inicio de todo</p>
+                    </div>
                 </div>
+                <div class="timeline-item" data-year="2020-2021">
+                    <div class="timeline-content">
+                        <h3>Luz en la Pandemia</h3>
+                        <p>Mensajes que iluminaron días oscuros</p>
+                    </div>
+                </div>
+                <div class="timeline-item" data-year="2024">
+                    <div class="timeline-content">
+                        <h3>El Reencuentro</h3>
+                        <p>Navidad nos volvió a unir</p>
+                    </div>
+                </div>
+                <div class="timeline-item" data-year="2025">
+                    <div class="timeline-content">
+                        <h3>Nuestro Primer San Valentín</h3>
+                        <p>El comienzo de nuestra nueva historia</p>
+                    </div>
+                </div>
+                <div class="timeline-item highlight" data-year="2025">
+                    <div class="timeline-content">
+                        <h3>Primer Encuentro Face to Face</h3>
+                        <p>21 de Febrero - El día que cambió todo</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para momentos especiales -->
+        <div id="moments-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <div class="moment-details">
+                    <img src="" alt="Momento especial" id="moment-image">
+                    <div class="moment-description"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de distancia -->
+        <div id="distance-section" class="distance-section hidden">
+            <div class="distance-content">
+                <h3>La Distancia que Pronto Será Cero</h3>
+                <div class="distance-visualization">
+                    <div class="distance-line">
+                        <div class="distance-point start">Perú</div>
+                        <div class="distance-progress"></div>
+                        <div class="distance-point end">Tú</div>
+                    </div>
+                </div>
+                <p class="distance-message">Cada día estamos más cerca...</p>
             </div>
         </div>
     </div>
 
-    <!-- Script principal -->
+    <!-- Scripts -->
     <script src="script.js"></script>
+    
+    <!-- Script para el contador -->
+    <script>
+        // Fecha objetivo: 21 de febrero de 2025
+        const targetDate = new Date('2025-02-21T00:00:00');
+
+        function updateCountdown() {
+            const now = new Date();
+            const difference = targetDate - now;
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            document.getElementById('days').textContent = String(days).padStart(2, '0');
+            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+        }
+
+        // Actualizar cada segundo
+        setInterval(updateCountdown, 1000);
+        updateCountdown(); // Actualización inicial
+    </script>
 </body>
 </html>
